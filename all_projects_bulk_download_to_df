@@ -1,0 +1,90 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[35]:
+
+
+import requests
+import pandas as pd
+from lxml import objectif
+
+
+# In[13]:
+
+
+path = # insert your unique file path from https://www.globalgiving.org/api/methods/get-all-projects-download/
+
+resp = requests.get(path)
+
+
+# In[20]:
+
+
+print(resp)
+
+
+# In[23]:
+
+
+with open('organizations.xml', 'wb') as file:
+    file.write(resp.content)
+
+
+# In[37]:
+
+
+path1 = # insert the unique AWS URL from 'organizations.xml'
+
+
+# In[40]:
+
+
+resp2 = requests.get(path1)
+
+
+# In[41]:
+
+
+print(resp2)
+
+
+# In[42]:
+
+
+with open('organizations2.xml', 'wb') as file:
+    file.write(resp2.content)
+
+
+# In[42]:
+
+
+path = 'organizations2.xml'
+parsed = objectify.parse(open(path))
+root = parsed.getroot()
+
+
+# In[46]:
+
+
+data = []
+skip_fields = ['additionalDocumentation', 'need', 'notice', 'progressReportLink', 'themes', 'videos']
+
+
+for elt in root.project:
+    el_data = {}
+    for child in elt.getchildren():
+        if child.tag in skip_fields:
+            continue
+        el_data[child.tag] = child.text
+    data.append(el_data) 
+    
+perf = pd.DataFrame(data)   
+
+
+# In[53]:
+
+
+for col in perf.columns: 
+    print(col) 
+   
+selected_cols_df = perf[['id', 'organization', 'activities', 'funding', 'active', 'approvedDate', 'goal', 'remaining', 'status', 'numberOfDonations', 'country', 'region','themeName', 'summary' ]].copy()    
